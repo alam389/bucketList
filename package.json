@@ -1,0 +1,16 @@
+{
+  "name": "se3316-lab3-alam389",
+  "version": "1.0.0",
+  "description": "Please put all front-end files in the folder named `client` and all back-end files in the folder named `server`.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "csv-parser": "^3.0.0",
+    "express": "^4.21.1"
+  }
+}
