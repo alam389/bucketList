@@ -7,11 +7,11 @@ const app = express();
 const router = express.Router();
 const port = 5000;
 const results = [];
-const lists = {}; // Object to store lists
+const lists = {}; // object to store lists
 
 //middleware to parse URL-encoded and JSON payloads
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '10kb'}));
+app.use(express.json({ limit: '10kb' }));
 //middleware to log requests
 app.use((req, res, next) => {
   console.log(`${req.method} request for ${req.url}`);
@@ -77,20 +77,100 @@ router.get('/search/:field/:pattern/:n?', (req, res) => {
     res.json(matches.slice(0, limit));
   } else {
     res.json(matches);
-  }
-});
-
+  }});
+//create a new list 
 router.post('/list/:listName', (req, res) => {
-  const { listName } = req.params; // Get the list name from the URL
+  const { listName } = req.params; // getting the list name from the url
 
-  if (lists[listName]) { // Check if the list name already exists
-    res.status(400).send('List already exists');
+  if (lists[listName]) { // checking if the list name already exists
+    res.status(400).json({
+      error: `List ${listName} already exists`
+    });
   } else { // If no matches, create a new list
-    lists[listName] = req.body; 
-    res.status(201).send(lists[listName]);
+    lists[listName] =  [];
+    res.status(200).json({
+      destinationId: lists[listName]
+    });
+  }});
+
+router.put('/list/:listName/:destinationId', (req,res)=>{//adding indexs
+
+  const {listName,destinationId} = req.params;// getting the list name from the url
+
+  if (lists[listName]){
+    lists[listName].push(destinationId)
+    res.status(200).json({
+      destinationId: lists[listName]
+    })}
+  else{
+    res.status(400).send('List does not exist')
+  }})
+
+router.get('/list/:listName', (req, res) => {
+  const {listName} = req.params;// getting the list name from the url
+  if (lists[listName]){
+    res.status(200).json({
+      destinationId: lists[listName]
+    })
+  }else{
+    res.status(400).json({
+      error: 'List does not exist' 
+
+
+    })
+  }})
+
+router.delete('/list/:listName/:destinationId', (req, res) => {
+  const { listName, destinationId } = req.params; // Extract parameters from the URL
+
+  if (lists[listName]) {
+    const index = lists[listName].indexOf(destinationId);
+    if (index > -1) {
+      lists[listName].splice(index, 1); // Remove the destinationId from the list
+      res.status(200).json({
+        destinationId: lists[listName]
+      });
+    } else {
+      res.status(404).json({
+        error: `Destination ID ${destinationId} not found in list ${listName}`
+      });
+    }
+  } else {
+    res.status(400).json({
+      error: 'List does not exist'
+    });
   }
 });
+router.get('/list/:listName/display', (req, res) => {
+  const { listName } = req.params; // Extract parameters from the URL
 
+  if (lists[listName]) {
+    const destinationIds = lists[listName];
+    const destinations = destinationIds.map(id => {
+      const destination = results.find(d => d.index === parseInt(id, 10) - 1);
+      if (destination) {
+        return {//return a subset of the destination object
+          name: destination.Name,
+          region: destination.Region,
+          country: destination.Country,
+          coordinates: {
+            latitude: destination.Latitude,
+            longitude: destination.Longitude
+          },
+          currency: destination.Currency,
+          language: destination.Language
+        };
+      }
+      return null;
+    }).filter(destination => destination !== null); // Filter out any null values
+
+    res.status(200).json(destinations);
+  } else {
+    res.status(400).json({
+      error: 'List does not exist'
+    });
+  }
+});
 
 //starting the server
 app.listen(port, () => {
