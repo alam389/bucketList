@@ -7,21 +7,24 @@ const app = express();
 const router = express.Router();
 const port = 5000;
 const results = [];
-const lists = {}; // object to store lists
+const lists = {}; //object to store lists
+let index = 0;//index for each destination
+
 
 //middleware to parse URL-encoded and JSON payloads
-app.use(express.urlencoded({ extended: true, limit: '10kb'}));
-app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true}));
+app.use(express.json());
 //middleware to log requests
 app.use((req, res, next) => {
   console.log(`${req.method} request for ${req.url}`);
   next();
 });
 app.use(cors());
-app.use('/api/destination', router); // for all routes starting with /api/parts
+
+app.use('/api/destination', router); //for all routes starting with /api/parts
 
 //load CSV data on server start
-let index = 0; // Define an index variable
+
 fs.createReadStream('C:/SE 3316/clone2/se3316-lab3-alam389/server/europe-destinations.csv')
   .pipe(csv())
   .on('data', (data) => {
@@ -32,13 +35,13 @@ fs.createReadStream('C:/SE 3316/clone2/se3316-lab3-alam389/server/europe-destina
     console.log('CSV data loaded.');
   });
 
-router.get('/country', (req, res) => {
+router.get('/country',cors(), async (req, res) => {
   const countries = results.map(destination => destination.Country)// Get all countries
     .filter((value, index, self) => self.indexOf(value) === index); // Filter out duplicates
   res.json(countries);
 
 });
-// Get all information for a given destination ID
+//get all information for a given destination ID
 router.get('/:id', (req, res) => {
   const destinationId = parseInt(req.params.id, 10); // Convert ID to an integer
   const destination = results.find(d => d.index === destinationId - 1); // Find by index property
@@ -50,17 +53,16 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// Get geographical coordinates (latitude and longitude) of a given destination ID
-router.get('/:id/coordinates', cors(), (req, res) => {
+//get geographical coordinates (latitude and longitude) of a given destination ID
+router.get('/:id/coordinates',cors(), (req, res) => {
   const destinationId = parseInt(req.params.id, 10); // Convert ID to an integer
   const destination = results.find(d => d.index === destinationId - 1); // Find by index property
 
   if (destination && destination.Latitude && destination.Longitude) {
     res.json({
-      Latitude: destination.latitude,
-      Longitude: destination.longitude
+      Latitude: destination.Latitude,
+      Longitude: destination.Longitude
     });
-
   } else {
     res.status(404).send(`Coordinates for destination with ID ${req.params.id} not found`);
   }
@@ -79,7 +81,7 @@ router.get('/search/:field/:pattern/:n?', (req, res) => {
     res.json(matches);
   }});
 //create a new list 
-router.post('/list/:listName', (req, res) => {
+router.post('/list/:listName',cors(), (req, res) => {
   const { listName } = req.params; // getting the list name from the url
 
   if (lists[listName]) { // checking if the list name already exists
@@ -93,7 +95,7 @@ router.post('/list/:listName', (req, res) => {
     });
   }});
 
-router.put('/list/:listName/:destinationId', (req,res)=>{//adding indexs
+router.put('/list/:listName/:destinationId', cors(), (req,res)=>{//adding indexs
 
   const {listName,destinationId} = req.params;// getting the list name from the url
 

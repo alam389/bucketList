@@ -5,8 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script defer src="lab3.js"></script>
     <title>SE 3316 - Lab 3</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="stylesheet.css">
   </head>
   <body>
+    <h1>Search</h1>
+    <div>
+      <form id="searchForm">
+        <label for="searchType">Search by:</label>
+        <input type="radio" id="searchCity" name="searchType" value="City" checked>
+        <label for="searchCity">City</label>
+        <input type="radio" id="searchRegion" name="searchType" value="Region">
+        <label for="searchRegion">Region</label>
+        <input type="radio" id="searchCountry" name="searchType" value="Country">
+        <label for="searchCountry">Country</label>
+
+        <input type="text" id="searchQuery" name="searchQuery" placeholder="Enter your search query">
+        <button type="submit">Search</button>
+        <select name="selectNum" id="selectNum">
+          <option value="5">5</option>
+          <option value="10">10</option>
+          <option value="20">20</option>
+          <option value="50">50</option>
+        </select>
+      </form>
+    </div>
+    <div id="map"></div>
+    <div id="results"></div>
+
+    <h2>Create a Favorite List</h2>
+    <form id="listForm">
+      <input type="text" id="listName" name="listName" placeholder="Enter list name">
+      <button type="submit">Create List</button>
+    </form>
+    
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="lab3.js"></script> 
   </body>
 </html>
-`
