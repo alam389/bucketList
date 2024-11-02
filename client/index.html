@@ -21,7 +21,7 @@
         <label for="searchCountry">Country</label>
 
         <input type="text" id="searchQuery" name="searchQuery" placeholder="Enter your search query">
-        <button type="submit">Search</button>
+        <button type="submit" id = "sumbitForm">Search</button>
         <select name="selectNum" id="selectNum">
           <option value="5">5</option>
           <option value="10">10</option>
@@ -30,15 +30,18 @@
         </select>
       </form>
     </div>
+
     <div id="map"></div>
     <div id="results"></div>
 
     <h2>Create a Favorite List</h2>
     <form id="listForm">
       <input type="text" id="listName" name="listName" placeholder="Enter list name">
-      <button type="submit">Create List</button>
+      <button type="submit" id = "createListButton">Create List</button>
     </form>
-    
+
+    <h2>Favorite Lists</h2>
+    <div id="listResults"></div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="lab3.js"></script> 

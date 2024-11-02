@@ -53,7 +53,7 @@ router.get('/:id', (req, res) => {
   }
 });
 
-//get geographical coordinates (latitude and longitude) of a given destination ID
+//get geographical coordinates of a given destination ID
 router.get('/:id/coordinates',cors(), (req, res) => {
   const destinationId = parseInt(req.params.id, 10); // Convert ID to an integer
   const destination = results.find(d => d.index === destinationId - 1); // Find by index property
@@ -108,8 +108,11 @@ router.put('/list/:listName/:destinationId', cors(), (req,res)=>{//adding indexs
     res.status(400).send('List does not exist')
   }})
 
+
+  
+
 router.get('/list/:listName', (req, res) => {
-  const {listName} = req.params;// getting the list name from the url
+  const {listName} = req.params;//getting the list name from the url
   if (lists[listName]){
     res.status(200).json({
       destinationId: lists[listName]
@@ -174,6 +177,11 @@ router.get('/list/:listName/display', (req, res) => {
   }
 });
 
+router.get('/lists', (req, res) => {
+  console.log('GET /lists route called'); // Add this line
+  const listNames = Object.keys(lists); // Get only the names of the lists
+  res.status(200).json(listNames);
+});
 //starting the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
