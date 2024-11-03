@@ -41,39 +41,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   //create a new list and update client-side and server-side storage
   document.getElementById('listForm').addEventListener('submit', async (event) => {
-  event.preventDefault();
-  let listName = document.getElementById('listName').value.trim();
+    event.preventDefault();
+    let listName = document.getElementById('listName').value.trim();
 
-  //input sanitization: remove unwanted characters, limit length
-  listName = listName.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 30);
-  
-  if (!isValidListName(listName)) {
-    alert("List name is invalid. Only alphanumeric characters and spaces are allowed, up to 30 characters.");
-    return;
-  }
+    //input sanitization: remove unwanted characters, limit length
+    listName = listName.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 30);
 
-  if (!lists[listName]) {
-    lists[listName] = [];
-    alert(`List "${listName}" created successfully!`);
-
-    try {
-      const createListResponse = await fetch(`http://localhost:5000/api/destination/list/${encodeURIComponent(listName)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-      if (!createListResponse.ok) throw new Error(`Server error: ${createListResponse.statusText}`);
-      console.log(`Server confirmed list "${listName}" created.`);
-
-      updateDropdownOptions();
-    } catch (error) {
-      console.error('Error creating list on server:', error);
+    if (!isValidListName(listName)) {
+      alert("List name is invalid. Only alphanumeric characters and spaces are allowed, up to 15 characters.");
+      return;
     }
-  } else {
-    alert(`List "${listName}" already exists.`);
-  }
 
-  document.getElementById('listForm').reset();
+    if (!lists[listName]) {
+      lists[listName] = [];
+      alert(`List "${listName}" created successfully!`);
+
+      try {
+        const createListResponse = await fetch(`http://localhost:5000/api/destination/list/${encodeURIComponent(listName)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!createListResponse.ok) throw new Error(`Server error: ${createListResponse.statusText}`);
+        console.log(`Server confirmed list "${listName}" created.`);
+
+        updateDropdownOptions();
+      } catch (error) {
+        console.error('Error creating list on server:', error);
+      }
+    } else {
+      alert(`List "${listName}" already exists.`);
+    }
+
+    document.getElementById('listForm').reset();
 });
 
 

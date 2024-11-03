@@ -2,40 +2,46 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const csv = require('csv-parser');
-
+const dataFilePath = './data/europe-destinations.csv';
 const app = express();
 const router = express.Router();
 const port = 5000;
 const results = [];//this will store parsed CSV data
 const lists = {}; //object to store favorite lists
 
+//middleware to log requests
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors());
-
-// Middleware to log requests
 app.use((req, res, next) => {
   console.log(`${req.method} request for ${req.url}`);
   next();
 });
 
+fs.watchFile(dataFilePath, (curr, prev) => {
+  console.log('CSV file changed, reloading data...');
+  loadData();
+});
 
 let index = 0;
+async function loadData() {
+  results.length = 0; //clear current data
+  index = 0; // Reset index
 
-(async () => {
   const stripBomStream = (await import('strip-bom-stream')).default;
 
-  fs.createReadStream('C:/SE 3316/clone2/se3316-lab3-alam389/server/europe-destinations.csv')
-    .pipe(stripBomStream()) //remove BOM
+  fs.createReadStream(dataFilePath)
+    .pipe(stripBomStream()) // Remove BOM if present
     .pipe(csv())
     .on('data', (data) => {
-      data.index = index++; //add index as a property to each row and increment it
+      data.index = index++; // Add index to each row and increment it
       results.push(data);
     })
     .on('end', () => {
       console.log('CSV data loaded.');
     });
-})();
+}
+loadData();
 
 router.get('/:id', (req, res) => {
   const destinationId = parseInt(req.params.id, 10); //convert ID to an integer
@@ -56,7 +62,7 @@ router.get('/country', (req, res) => {
 
 
 router.get('/:id/coordinates',cors(), (req, res) => {
-  const destinationId = parseInt(req.params.id, 10); // ID to an integer
+  const destinationId = parseInt(req.params.id, 10); //ID to an integer
   const destination = results.find(d => d.index === destinationId);
 
   if (destination && destination.Latitude && destination.Longitude) {
@@ -68,7 +74,7 @@ router.get('/:id/coordinates',cors(), (req, res) => {
     res.status(404).send(`Coordinates for destination with ID ${req.params.id} not found`);
   }
 });
-// Search endpoint
+//search endpoint
 router.get('/search/:field/:pattern/:n?', (req, res) => {
   const { field, pattern, n } = req.params;
   const limit = n ? parseInt(n, 10) : undefined;
