@@ -1,6 +1,5 @@
-// Initialize client-side storage for lists (declare once at the top)
 const lists = {};
-let fetchedResults = []; // Global variable to store fetched results
+let fetchedResults = []; 
 let currentListName = '';
 document.addEventListener('DOMContentLoaded', () => {
   const map = L.map('map').setView([48.8566, 2.3522], 5); 
@@ -10,8 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }).addTo(map);
 
   const form = document.getElementById('searchForm');
-  const resultsContainer = document.getElementById('results');
-  const listResultsContainer = document.getElementById('listResults'); // Container to display list results
+  const listResultsContainer = document.getElementById('listResults'); 
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -39,37 +37,45 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error fetching data:', err);
     }
   });
+  const isValidListName = (name) => /^[a-zA-Z0-9 ]{1,15}$/.test(name);
 
-  // Create a new list and update client-side and server-side storage
+  //create a new list and update client-side and server-side storage
   document.getElementById('listForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const listName = document.getElementById('listName').value;
+  event.preventDefault();
+  let listName = document.getElementById('listName').value.trim();
 
-    if (!lists[listName]) {
-      lists[listName] = []; // Initialize list in client-side object
-      alert(`List "${listName}" created successfully!`);
+  //input sanitization: remove unwanted characters, limit length
+  listName = listName.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 30);
+  
+  if (!isValidListName(listName)) {
+    alert("List name is invalid. Only alphanumeric characters and spaces are allowed, up to 30 characters.");
+    return;
+  }
 
-      try {
-        const createListResponse = await fetch(`http://localhost:5000/api/destination/list/${listName}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
-        });
+  if (!lists[listName]) {
+    lists[listName] = [];
+    alert(`List "${listName}" created successfully!`);
 
-        if (!createListResponse.ok) throw new Error(`Server error: ${createListResponse.statusText}`);
-        console.log(`Server confirmed list "${listName}" created.`);
+    try {
+      const createListResponse = await fetch(`http://localhost:5000/api/destination/list/${encodeURIComponent(listName)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
-        // Update dropdown after creating a new list
-        updateDropdownOptions();
+      if (!createListResponse.ok) throw new Error(`Server error: ${createListResponse.statusText}`);
+      console.log(`Server confirmed list "${listName}" created.`);
 
-      } catch (error) {
-        console.error('Error creating list on server:', error);
-      }
-    } else {
-      alert(`List "${listName}" already exists.`);
+      updateDropdownOptions();
+    } catch (error) {
+      console.error('Error creating list on server:', error);
     }
+  } else {
+    alert(`List "${listName}" already exists.`);
+  }
 
-    document.getElementById('listForm').reset(); //clear form input
-  });
+  document.getElementById('listForm').reset();
+});
+
 
   function displayMap(results) {
     map.eachLayer((layer) => {
@@ -241,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   
   function sortAndDisplayListResults(criteria) {
-    const sortedResults = [...fetchedResults]; // Use the global fetchedResults
+    const sortedResults = [...fetchedResults]; //use the global fetchedResults
   
     sortedResults.sort((a, b) => {
       if (a[criteria] < b[criteria]) return -1;
@@ -249,8 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return 0;
     });
   
-    displayListResults(sortedResults, currentListName); // Use currentListName instead of listName
-  }
+    displayListResults(sortedResults, currentListName); }
 
     document.getElementById('viewListsButton').addEventListener('click', async () => {
     const listName = prompt('Enter the list name to view:');

@@ -102,16 +102,18 @@ router.get('/search/:field/:pattern/:n?', (req, res) => {
 
 //create a new favorite list
 router.post('/list/:listName', (req, res) => {
-  const { listName } = req.params; 
+  let { listName } = req.params;
 
-  if (lists[listName]) { //checking if the list name already exists
+  // server sanitization
+  listName = listName.replace(/[^a-zA-Z0-9 ]/g, '').substring(0, 15);
+
+  if (lists[listName]) {
     res.status(400).json({ error: `List ${listName} already exists` });
-  } else { //if no matches, create a new list
+  } else {
     lists[listName] = [];
     res.status(200).json({ message: `List ${listName} created successfully` });
   }
 });
-
 router.put('/list/:listName/:destinationId', (req, res) => {
   const { listName, destinationId } = req.params; 
   
