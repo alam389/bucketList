@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const form = document.getElementById('searchForm');
   const resultsContainer = document.getElementById('results');
+  const listResultsContainer = document.getElementById('listResults'); // Container to display list results
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!searchResponse.ok) throw new Error(`Error: ${searchResponse.statusText}`);
 
       const results = await searchResponse.json();
+      console.log(results); // Log the results to verify
       displayResults(results);
       displayMap(results);
 
@@ -65,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`List "${listName}" already exists.`);
     }
 
-    document.getElementById('listForm').reset(); // Clear form input
+    document.getElementById('listForm').reset(); //clear form input
   });
 
   function displayMap(results) {
@@ -109,7 +111,24 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`List "${listName}" does not exist.`);
     }
   }
+  async function displayList(listName) {
+    try {
+      const response = await fetch(`http://localhost:5000/api/destination/list/${listName}/display`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
 
+      if (!response.ok) throw new Error(`Error: ${response.statusText}`);
+
+      const results = await response.json();
+      console.log(results); //results to verify
+      displayListResults(results);
+      displayMap(results);
+
+    } catch (err) {
+      console.error('Error fetching list:', err);
+    }
+  }
   function displayResults(results) {
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';
@@ -126,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
       defaultOption.text = 'Select a list';
       listSelect.appendChild(defaultOption);
 
-      // Populate dropdown from client-side lists object
       for (const listName in lists) {
         const option = document.createElement('option');
         option.value = listName;
@@ -160,14 +178,29 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Helper function to update dropdown options after list creation
+  function displayListResults(results) {
+    listResultsContainer.innerHTML = '';
+
+    results.forEach(destination => {
+      const div = document.createElement('div');
+      div.className = 'result-item';
+      div.innerHTML = `
+        <h3>${destination.name}</h3>
+        <p>Region: ${destination.region}</p>
+        <p>Country: ${destination.country}</p>
+        <p>Coordinates: ${destination.coordinates.latitude}, ${destination.coordinates.longitude}</p>
+        <p>Currency: ${destination.currency}</p>
+        <p>Language: ${destination.language}</p>
+      `;
+      listResultsContainer.appendChild(div);
+    });
+  }
+  //helper function to update dropdown options after list creation
   function updateDropdownOptions() {
     const dropdowns = document.querySelectorAll('select[id^="listSelect-"]');
     dropdowns.forEach(listSelect => {
-      // Clear existing options
       listSelect.innerHTML = '<option value="">Select a list</option>';
       
-      // Populate with updated lists
       for (const listName in lists) {
         const option = document.createElement('option');
         option.value = listName;
@@ -176,4 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+    document.getElementById('viewListsButton').addEventListener('click', async () => {
+    const listName = prompt('Enter the list name to view:');
+    if (listName) {
+      await displayList(listName);
+    }
+  });
 });
