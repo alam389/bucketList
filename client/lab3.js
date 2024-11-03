@@ -136,54 +136,71 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error fetching list:', err);
     }
   }
-  function displayResults(results) {
+  function displayResults(results) {//using createTextNode to prevent XSS
     const resultsContainer = document.getElementById('results');
     resultsContainer.innerHTML = '';
-
+  
     results.forEach(destination => {
       const div = document.createElement('div');
       div.className = 'result-item';
-
+  
+      const title = document.createElement('h3');
+      title.textContent = destination.Destination;
+      div.appendChild(title);
+  
+      const region = document.createElement('p');
+      region.textContent = `Region: ${destination.Region}`;
+      div.appendChild(region);
+  
+      const country = document.createElement('p');
+      country.textContent = `Country: ${destination.Country}`;
+      div.appendChild(country);
+  
+      const coords = document.createElement('p');
+      coords.textContent = `Coordinates: ${destination.Latitude}, ${destination.Longitude}`;
+      div.appendChild(coords);
+  
+      const currency = document.createElement('p');
+      currency.textContent = `Currency: ${destination.Currency}`;
+      div.appendChild(currency);
+  
+      const language = document.createElement('p');
+      language.textContent = `Language: ${destination.Language}`;
+      div.appendChild(language);
+  
       const listSelect = document.createElement('select');
       listSelect.id = `listSelect-${destination.index}`;
-
+  
       const defaultOption = document.createElement('option');
       defaultOption.value = '';
-      defaultOption.text = 'Select a list';
+      defaultOption.textContent = 'Select a list';
       listSelect.appendChild(defaultOption);
-
+  
       for (const listName in lists) {
         const option = document.createElement('option');
         option.value = listName;
-        option.text = listName;
+        option.textContent = listName;
         listSelect.appendChild(option);
       }
-
-      div.innerHTML = `
-        <h3>${destination.Destination}</h3>
-        <p>Region: ${destination.Region}</p>
-        <p>Country: ${destination.Country}</p>
-        <p>Coordinates: ${destination.Latitude}, ${destination.Longitude}</p>
-        <p>Currency: ${destination.Currency}</p>
-        <p>Language: ${destination.Language}</p>
-      `;
-
+  
+      div.appendChild(listSelect);
+  
       const addButton = document.createElement('button');
       addButton.textContent = 'Add to List';
       addButton.onclick = () => {
         const selectedList = listSelect.value;
         if (selectedList) {
-          addDestinationToList(selectedList, destination.index);
+          addDestinationToList(selectedList, destination.index); // Add the destination to the selected list
         } else {
           alert('Please select a list.');
         }
       };
-
-      div.appendChild(listSelect);
+  
       div.appendChild(addButton);
       resultsContainer.appendChild(div);
     });
   }
+  
 
   async function displayListResults(results, listName) {
     listResultsContainer.innerHTML = `<h3>List: ${listName}</h3>`; // Display list name

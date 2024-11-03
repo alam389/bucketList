@@ -1,6 +1,5 @@
 
 
-/* Map styling */
 #map {
     height: 500px;
     width: 100%;
@@ -10,7 +9,6 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Container styling for sections */
 body {
     font-family: Arial, sans-serif;
     color: #333;
@@ -23,7 +21,6 @@ h1, h2 {
     color: #2c3e50;
 }
 
-/* Styling for forms */
 form {
     display: flex;
     justify-content: center;
