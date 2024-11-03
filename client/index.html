@@ -40,8 +40,18 @@
       <button type="submit" id = "createListButton">Create List</button>
     </form>
 
-    <h2>Favorite Lists</h2>
-    <button id="viewListsButton">View Lists</button>
+    <div id="sortControlsContainer">
+      <h2>Favorite Lists</h2>
+        <button id="viewListsButton">View Lists</button>
+      <label for="sortCriteria">Sort by:</label>
+        <select id="sortCriteria">
+          <option value="name">Name</option>
+          <option value="region">Region</option>
+          <option value="country">Country</option>
+        </select>
+      <button id="sortButton">Sort</button>
+    </div>
+
     <div id="listResults"></div>
     
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>

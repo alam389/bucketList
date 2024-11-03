@@ -1,6 +1,7 @@
 // Initialize client-side storage for lists (declare once at the top)
 const lists = {};
-
+let fetchedResults = []; // Global variable to store fetched results
+let currentListName = '';
 document.addEventListener('DOMContentLoaded', () => {
   const map = L.map('map').setView([48.8566, 2.3522], 5); 
 
@@ -112,19 +113,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   async function displayList(listName) {
+    currentListName = listName; // Store the list name globally
+  
     try {
-      const response = await fetch(`http://localhost:5000/api/destination/list/${listName}/display`, {
+      const response = await fetch(`http://localhost:5000/api/destination/list/${encodeURIComponent(listName)}/display`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' }
       });
-
+  
       if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-
+  
       const results = await response.json();
-      console.log(results); //results to verify
-      displayListResults(results);
-      displayMap(results);
-
+      fetchedResults = results; // Store results globally
+      displayListResults(results, listName); 
     } catch (err) {
       console.error('Error fetching list:', err);
     }
@@ -178,9 +179,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function displayListResults(results) {
-    listResultsContainer.innerHTML = '';
-
+  async function displayListResults(results, listName) {
+    listResultsContainer.innerHTML = `<h3>List: ${listName}</h3>`; // Display list name
+  
     results.forEach(destination => {
       const div = document.createElement('div');
       div.className = 'result-item';
@@ -192,8 +193,33 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Currency: ${destination.currency}</p>
         <p>Language: ${destination.language}</p>
       `;
+  
+      // Create delete button
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Delete';
+      deleteButton.onclick = async () => {
+        await deleteDestinationFromList(currentListName, destination.index); // Pass original index
+        await displayList(listName); // Refresh list display after deletion
+      };
+  
+      div.appendChild(deleteButton); // Add delete button to each result item
       listResultsContainer.appendChild(div);
     });
+  }
+  
+
+  async function deleteDestinationFromList(listName, destinationId) {
+    try {
+      const response = await fetch(`http://localhost:5000/api/destination/list/${listName}/${destinationId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+      });
+  
+      if (!response.ok) throw new Error(`Error deleting destination: ${response.statusText}`);
+      console.log(`Destination ID ${destinationId} deleted from list "${listName}".`);
+    } catch (error) {
+      console.error('Error deleting destination from list:', error);
+    }
   }
   //helper function to update dropdown options after list creation
   function updateDropdownOptions() {
@@ -208,6 +234,22 @@ document.addEventListener('DOMContentLoaded', () => {
         listSelect.appendChild(option);
       }
     });
+  }
+  document.getElementById('sortButton').addEventListener('click', () => {
+    const sortCriteria = document.getElementById('sortCriteria').value;
+    sortAndDisplayListResults(sortCriteria);
+  });
+  
+  function sortAndDisplayListResults(criteria) {
+    const sortedResults = [...fetchedResults]; // Use the global fetchedResults
+  
+    sortedResults.sort((a, b) => {
+      if (a[criteria] < b[criteria]) return -1;
+      if (a[criteria] > b[criteria]) return 1;
+      return 0;
+    });
+  
+    displayListResults(sortedResults, currentListName); // Use currentListName instead of listName
   }
 
     document.getElementById('viewListsButton').addEventListener('click', async () => {

@@ -6,13 +6,12 @@ const csv = require('csv-parser');
 const app = express();
 const router = express.Router();
 const port = 5000;
-const results = [];
-const lists = {}; // Object to store favorite lists
+const results = [];//this will store parsed CSV data
+const lists = {}; //object to store favorite lists
 
-// Middleware to parse URL-encoded and JSON payloads
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors()); // Apply CORS middleware globally
+app.use(cors());
 
 // Middleware to log requests
 app.use((req, res, next) => {
@@ -20,18 +19,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Load CSV data on server start
-let index = 0; // Define an index variable
 
-// Use dynamic import for strip-bom-stream
+let index = 0;
+
 (async () => {
   const stripBomStream = (await import('strip-bom-stream')).default;
 
   fs.createReadStream('C:/SE 3316/clone2/se3316-lab3-alam389/server/europe-destinations.csv')
-    .pipe(stripBomStream()) // Remove BOM
+    .pipe(stripBomStream()) //remove BOM
     .pipe(csv())
     .on('data', (data) => {
-      data.index = index++; // Add index as a property to each row and increment it
+      data.index = index++; //add index as a property to each row and increment it
       results.push(data);
     })
     .on('end', () => {
@@ -40,8 +38,8 @@ let index = 0; // Define an index variable
 })();
 
 router.get('/:id', (req, res) => {
-  const destinationId = parseInt(req.params.id, 10); // Convert ID to an integer
-  const destination = results.find(d => d.index === destinationId - 1); // Find by index property
+  const destinationId = parseInt(req.params.id, 10); //convert ID to an integer
+  const destination = results.find(d => d.index === destinationId ); //find by index property
 
   if (destination) {
     res.json(destination);
@@ -52,14 +50,14 @@ router.get('/:id', (req, res) => {
 // Get all countries
 router.get('/country', (req, res) => {
   const countries = results.map(destination => destination.Country)
-    .filter((value, index, self) => self.indexOf(value) === index); // Filter out duplicates
+    .filter((value, index, self) => self.indexOf(value) === index); // take out duplicates
   res.json(countries);
 });
 
 
 router.get('/:id/coordinates',cors(), (req, res) => {
-  const destinationId = parseInt(req.params.id, 10); // Convert ID to an integer
-  const destination = results.find(d => d.index === destinationId - 1); // Find by index property
+  const destinationId = parseInt(req.params.id, 10); // ID to an integer
+  const destination = results.find(d => d.index === destinationId);
 
   if (destination && destination.Latitude && destination.Longitude) {
     res.json({
@@ -74,16 +72,16 @@ router.get('/:id/coordinates',cors(), (req, res) => {
 router.get('/search/:field/:pattern/:n?', (req, res) => {
   const { field, pattern, n } = req.params;
   const limit = n ? parseInt(n, 10) : undefined;
-  const regex = new RegExp(pattern, 'i'); // Case-insensitive regex for matching
+  const regex = new RegExp(pattern, 'i'); //case-insensitive regex for matching
 
   // Check if data is loaded
   if (results.length === 0) {
     return res.status(500).json({ error: 'CSV data not loaded' });
   }
 
-  // Perform the search, ensuring the field exists in each entry
+  // preforms the search, ensuring the field exists in each entry
   const matches = results.filter(destination => {
-    // Check if the field exists in the destination and if it matches the pattern
+    //check if the field exists in the destination and if it matches the pattern
     return destination[field] && regex.test(destination[field]);
   });
 
@@ -94,7 +92,7 @@ router.get('/search/:field/:pattern/:n?', (req, res) => {
     console.log(`Found ${matches.length} matches for pattern: "${pattern}" in field: "${field}"`);
   }
 
-  // Return limited results if specified
+  //return limited results if specified
   if (limit) {
     return res.json(matches.slice(0, limit));
   } else {
@@ -102,13 +100,13 @@ router.get('/search/:field/:pattern/:n?', (req, res) => {
   }
 });
 
-// Create a new favorite list
+//create a new favorite list
 router.post('/list/:listName', (req, res) => {
-  const { listName } = req.params; // Get the list name from the URL
+  const { listName } = req.params; 
 
-  if (lists[listName]) { // Check if the list name already exists
+  if (lists[listName]) { //checking if the list name already exists
     res.status(400).json({ error: `List ${listName} already exists` });
-  } else { // If no matches, create a new list
+  } else { //if no matches, create a new list
     lists[listName] = [];
     res.status(200).json({ message: `List ${listName} created successfully` });
   }
@@ -126,9 +124,9 @@ router.put('/list/:listName/:destinationId', (req, res) => {
   }
 });
 
-// Retrieve a favorite list
+//retrieve a favorite list
 router.get('/list/:listName', (req, res) => {
-  const { listName } = req.params; // Get the list name from the URL
+  const { listName } = req.params; //get the list name from the URL
 
   if (lists[listName]) {
     const destinations = lists[listName].map(id => results.find(d => d.index === parseInt(id, 10)));
@@ -165,9 +163,10 @@ router.get('/list/:listName/display', (req, res) => {
   if (lists[listName]) {
     const destinationIds = lists[listName];
     const destinations = destinationIds.map(id => {
-      const destination = results.find(d => d.index === parseInt(id, 10) - 1);
+      const destination = results.find(d => d.index === parseInt(id, 10) );
       if (destination) {
         return {//return a subset of the destination object
+          index: destination.index, 
           name: destination.Destination,
           region: destination.Region,
           country: destination.Country,
@@ -180,7 +179,7 @@ router.get('/list/:listName/display', (req, res) => {
         };
       }
       return null;
-    }).filter(destination => destination !== null); // Filter out any null values
+    }).filter(destination => destination !== null); //filter out any null values
 
     res.status(200).json(destinations);
   } else {
@@ -190,7 +189,7 @@ router.get('/list/:listName/display', (req, res) => {
   }
 });
 
-// Retrieve all lists and their names
+//retrieve all lists and their names
 router.get('/lists', (req, res) => {
   const listNames = Object.keys(lists);
   res.status(200).json({
@@ -199,10 +198,8 @@ router.get('/lists', (req, res) => {
   });
 });
 
-// Apply the router for all routes starting with /api/destination
 app.use('/api/destination', router);
 
-// Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
